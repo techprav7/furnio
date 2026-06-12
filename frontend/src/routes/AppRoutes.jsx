@@ -14,21 +14,29 @@ import Blog from "../pages/Blog/Blog";
 import Wishlist from "../pages/Wishlist/Wishlist";
 import Error404 from "../pages/Error404/Error404";
 import ProtectedRoute from "../components/ProtectedRoute";
-import { useAuthStore } from "../store/store";
+import { useAuth } from "@clerk/clerk-react";
 
 const AppRoutes = () => {
-  const { isAuthenticated } = useAuthStore();
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen w-full bg-[#f5f5f5] flex items-center justify-center">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <Routes>
       {/* Auth pages — no layout wrapper (full-screen backgrounds) */}
       <Route
         path="/login"
-        element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
+        element={isSignedIn ? <Navigate to="/" replace /> : <Login />}
       />
       <Route
         path="/register"
-        element={isAuthenticated ? <Navigate to="/" replace /> : <Register />}
+        element={isSignedIn ? <Navigate to="/" replace /> : <Register />}
       />
 
       {/* Main app — requires authentication */}
@@ -53,5 +61,6 @@ const AppRoutes = () => {
     </Routes>
   );
 };
+
 
 export default AppRoutes;

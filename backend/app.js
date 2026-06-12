@@ -46,11 +46,17 @@ const limiter = rateLimit({
 });
 app.use("/api/", limiter);
 
-// Stricter rate limit for auth endpoints
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20, // only 20 auth attempts per 15 min
-  message: { message: "Too many login attempts, please try again later." },
+// --- Webhooks (Must be mounted before express.json() parser for raw body access) ---
+const webhookRoutes = require("./routes/webhook");
+app.use("/api/webhooks", webhookRoutes);
+
+// --- Clerk Middleware ---
+const { clerkMiddleware } = require("@clerk/express");
+app.use((req, res, next) => {
+  if (!process.env.CLERK_SECRET_KEY) {
+    return next();
+  }
+  clerkMiddleware()(req, res, next);
 });
 
 // --- Parsers ---
@@ -67,15 +73,14 @@ if (process.env.NODE_ENV !== "production") {
 connectDB();
 
 // --- Routes ---
-const authRoutes = require("./routes/auth");
 const productRoutes = require("./routes/products");
 const contactRoutes = require("./routes/contact");
 const newsletterRoutes = require("./routes/newsletter");
 
-app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/newsletter", newsletterRoutes);
+
 
 // Health check
 app.get("/api/health", (req, res) => {

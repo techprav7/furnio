@@ -11,11 +11,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import "../css/Navbar.css";
 import logoImg from "../assets/Logo.png";
-import { useAuthStore, useCartStore, useWishlistStore } from "../store/store";
+import { useCartStore, useWishlistStore } from "../store/store";
+import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/clerk-react";
 
 function NavbarComponent() {
   const navigate = useNavigate();
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isSignedIn } = useAuth();
   const { items: cartItems, getTotal } = useCartStore();
   const { items: wishlistItems } = useWishlistStore();
 
@@ -33,11 +34,6 @@ function NavbarComponent() {
   const [showSearchPopup, setShowSearchPopup] = useState(false);
   const searchRef = useRef();
   const toggleSearchPopup = () => setShowSearchPopup((prev) => !prev);
-
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
 
   // Close popups on outside click
   useEffect(() => {
@@ -97,7 +93,7 @@ function NavbarComponent() {
             <div className="d-flex flex-column flex-lg-row align-items-center justify-content-end flex-grow-1 order-3 gap-3 position-relative">
               <div className="d-flex gap-3 align-items-center">
                 {/* 👤 Profile */}
-                <Link to={isAuthenticated ? "/profile" : "/login"} className="text-dark nav-icon-hover">
+                <Link to={isSignedIn ? "/profile" : "/login"} className="text-dark nav-icon-hover">
                   <Person2OutlinedIcon fontSize="medium" />
                 </Link>
 
@@ -254,42 +250,29 @@ function NavbarComponent() {
 
               {/* Auth Buttons */}
               <div className="d-flex gap-2 flex-nowrap align-items-center">
-                {isAuthenticated ? (
-                  <>
-                    <span className="text-sm text-gray-600 d-none d-lg-inline">
-                      Hi, {user?.name?.split(" ")[0]}
-                    </span>
-                    <button
-                      onClick={handleLogout}
-                      className="btn btn-outline-dark px-3 py-1 d-flex align-items-center gap-1"
-                      style={{ whiteSpace: "nowrap" }}
-                    >
-                      <LogoutOutlinedIcon fontSize="small" />
-                      Logout
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      to="/login"
-                      className="btn btn-outline-dark px-4 py-1"
-                      style={{ whiteSpace: "nowrap" }}
-                    >
-                      Sign In
-                    </Link>
-                    <Link
-                      to="/register"
-                      className="btn btn-dark px-3 py-1"
-                      style={{
-                        backgroundColor: "#B88E2F",
-                        borderColor: "#B88E2F",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Sign Up
-                    </Link>
-                  </>
-                )}
+                <SignedOut>
+                  <Link
+                    to="/login"
+                    className="btn btn-outline-dark px-4 py-1"
+                    style={{ whiteSpace: "nowrap" }}
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="btn btn-dark px-3 py-1"
+                    style={{
+                      backgroundColor: "#B88E2F",
+                      borderColor: "#B88E2F",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Sign Up
+                  </Link>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton afterSignOutUrl="/login" />
+                </SignedIn>
               </div>
             </div>
           </div>

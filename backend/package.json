@@ -13,6 +13,7 @@
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
+    "@clerk/express": "^2.1.26",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -23,6 +24,7 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "svix": "^1.95.2"
   }
 }

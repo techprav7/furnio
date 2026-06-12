@@ -1,37 +1,11 @@
-const jwt = require("jsonwebtoken");
+const { requireAuth } = require("@clerk/express");
 
-const auth = (req, res, next) => {
-  try {
-    // Read token from httpOnly cookie first, fallback to Authorization header
-    let token = req.cookies?.token;
-
-    if (!token) {
-      const authHeader = req.header("Authorization");
-      if (authHeader && authHeader.startsWith("Bearer ")) {
-        token = authHeader.split(" ")[1];
-      }
-    }
-
-    if (!token) {
-      return res
-        .status(401)
-        .json({ message: "Access denied. No token provided." });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      return res
-        .status(401)
-        .json({ message: "Token expired. Please login again." });
-    }
-    if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ message: "Invalid token." });
-    }
-    res.status(500).json({ message: "Authentication error." });
+module.exports = (req, res, next) => {
+  // Check if CLERK_SECRET_KEY is defined. If not, bypass middleware and print warning.
+  if (!process.env.CLERK_SECRET_KEY) {
+    console.warn("⚠️ CLERK_SECRET_KEY is missing. Clerk requireAuth middleware is bypassed.");
+    return next();
   }
+  
+  return requireAuth()(req, res, next);
 };
-
-module.exports = auth;
